@@ -221,13 +221,18 @@ if (readings.size() > 50) {
 
 Note: Data is stored in memory, so higher limits will increase RAM usage.
 
-### Scaling for Production
+[//]: # (### Scaling for Production)
 
-For production deployments, consider:
+[//]: # ()
+[//]: # (For production deployments, consider:)
 
-1. **Increase Partitions** - Allows parallel consumption for higher throughput
-2. **Increase Replicas** - Provides fault tolerance (requires multiple Kafka brokers)
-3. **External Database** - Replace in-memory storage with a persistent database
-4. **Environment Variables** - Externalize configuration for different environments
+[//]: # ()
+[//]: # (1. **Increase Partitions** - Allows parallel consumption for higher throughput)
+
+[//]: # (2. **Increase Replicas** - Provides fault tolerance &#40;requires multiple Kafka brokers&#41;)
+
+[//]: # (3. **External Database** - Replace in-memory storage with a persistent database)
+
+[//]: # (4. **Environment Variables** - Externalize configuration for different environments)
 
 
