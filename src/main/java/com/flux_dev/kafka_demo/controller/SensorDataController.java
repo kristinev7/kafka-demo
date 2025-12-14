@@ -14,7 +14,6 @@ import java.util.TreeMap;
 
 @RestController //expose data via REST endpoints
 @RequestMapping("/api/sensors")
-@CrossOrigin(origins = "http://localhost:3000")
 public class SensorDataController {
     private final SensorDataConsumer consumer;
 
