@@ -1,238 +1,154 @@
-# Kafka Sensor Data Streaming Demo
+# Real-Time Event Streaming & Monitoring Platform
 
-A real-time sensor data streaming application demonstrating Apache Kafka's capabilities with a Spring Boot backend 
-and React frontend.
-[Kafka-Demo-Frontend](https://github.com/kristinev7/kafka-demo-frontend)
+A **real-time, event-driven data streaming platform** built with **Apache Kafka** and **Spring Boot** to ingest, process, and expose continuous event data.
+This project focuses on **distributed backend architecture**, **stream processing**, and a deliberate comparison between **polling-based** and **push-based** data delivery models. 
+The system currently uses REST polling, with WebSocket-based push delivery **in progress**.
 
-## Overview
+---
 
-This project simulates real-world IoT data streaming by generating artificial sensor readings (temperature, humidity, pressure) and streaming them through Kafka. The data is consumed by a Spring Boot service and made available via REST API and WebSocket for real-time updates.
+## 🎯 Project Goals
 
-## Architecture
+- Build an **event-driven backend system** using Apache Kafka
+- Process continuous event data with a scalable consumer architecture
+- Expose streamed data via **REST APIs (polling)**
+- Explore **push-based delivery using WebSockets** *(in progress)*
+- Compare tradeoffs between polling and push delivery models
+- Practice backend system design and data flow management
 
-```
-┌─────────────────┐      ┌─────────────┐      ┌────────────────────┐
-│  Data Generator │─────▶│    Kafka    │─────▶│ SensorDataConsumer │
-│  (produces)     │      │ sensor-data │      │ (consumes)         │
-└─────────────────┘      └─────────────┘      └─────────┬──────────┘
-                                                        │
-                                          ┌─────────────┴─────────────┐
-                                          ▼                           ▼
-                                   ┌─────────────┐           ┌──────────────┐
-                                   │  In-Memory  │           │  WebSocket   │
-                                   │   Storage   │           │  /topic/*    │
-                                   └──────┬──────┘           └──────────────┘
-                                          │                         ▲
-                                          ▼                         │
-                                   ┌─────────────────┐              │
-                                   │ REST Controller │              │
-                                   │ /api/sensors/*  │              │
-                                   └────────┬────────┘              │
-                                            │                       │
-                                            ▼                       │
-                                   ┌─────────────────┐              │
-                                   │    Frontend     │──────────────┘
-                                   │  (React/Vite)   │  (real-time updates)
-                                   └─────────────────┘
-```
+---
 
-## Project Structure
+## 🏗️ Architecture Overview
 
-```
-kafka-demo/
-└── src/main/java/com/flux_dev/kafka_demo/
-    ├── config/
-    │   ├── CorsGlobalConfig.java    # CORS settings for cross-origin requests
-    │   ├── KafkaConfig.java         # Kafka topic configuration
-    │   └── WebSocketConfig.java     # WebSocket/STOMP setup for real-time updates
-    ├── consumer/
-    │   └── SensorDataConsumer.java  # Kafka message consumer service
-    ├── controller/
-    │   └── SensorDataController.java # REST API endpoints
-    ├── generator/
-    │   └── DataGenerator.java       # Simulated sensor data producer
-    └── model/
-        └── SensorReading.java       # Data model for sensor readings
-```
+### Event Producer
+- Generates continuous event data (e.g., sensor readings)
+- Publishes events to a Kafka topic
+- Configurable event generation interval
 
-## Prerequisites
+### Messaging Layer
+- Apache Kafka as the event backbone
+- Single topic for event ingestion
+- Supports decoupled producers and consumers
 
+### Backend Consumer Service
+- Spring Boot application
+- Kafka consumer service for ingesting events
+- Bounded in-memory retention of recent events
+- Clear separation of consumer, service, and API layers
+
+### Data Access & Delivery
+- **REST APIs** for pull-based access to recent event data *(implemented)*
+- **WebSocket (STOMP)** push delivery for real-time updates *(in progress)*
+
+### Client Dashboard
+- React-based frontend
+- Displays recent event data
+- Uses REST polling today
+- Planned migration to WebSocket-based updates
+
+---
+
+## 🚀 Tech Stack
+
+### Backend
+- Java 17
+- Spring Boot
+- Apache Kafka
+- Spring Kafka
+- REST APIs
+- WebSocket (STOMP) *(in progress)*
+
+### Frontend
+- React
+- REST client
+- WebSocket client *(planned)*
+
+---
+
+## 🔧 Core Features
+
+- Event ingestion using Kafka producers and consumers
+- Event-driven backend processing
+- REST-based polling APIs for accessing recent events
+- Bounded in-memory storage to limit resource usage
+- Clear layering between ingestion, processing, and delivery
+- WebSocket-based real-time delivery *(in progress)*
+
+---
+
+## ⚖️ Polling vs Push Delivery (Design Focus)
+
+This project intentionally explores two common approaches to delivering streaming data to clients.
+
+### REST Polling (Implemented)
+- Clients request the latest event data at fixed intervals
+- Simple to implement and widely supported
+- Can result in higher latency and redundant requests
+
+### WebSocket Push (In Progress)
+- Backend pushes updates to clients as soon as new events arrive
+- Lower latency and more efficient for live dashboards
+- Requires persistent connections and connection management
+
+**Status:** REST polling is fully implemented. WebSocket-based push delivery is currently being added to enable direct comparison.
+
+---
+
+## 🔄 Data Flow
+
+1. Event producer generates event data
+2. Events are published to a Kafka topic
+3. Spring Boot consumer ingests and processes events
+4. Recent events are stored in memory with a fixed retention limit
+5. Clients access data via:
+   - REST polling *(current)*
+   - WebSocket push delivery *(in progress)*
+
+---
+
+## 🧪 Local Setup
+
+### Prerequisites
 - Java 17+
-- Apache Kafka (running on localhost:9092)
+- Apache Kafka (local or containerized)
 - Maven
 
-## Getting Started
-
-### 1. Start Kafka
-
-Make sure Kafka and Zookeeper are running:
-
+### Start Kafka
 ```bash
-# Start Zookeeper
+# Zookeeper
 zookeeper-server-start.sh config/zookeeper.properties
 
-# Start Kafka
+# Kafka Broker
 kafka-server-start.sh config/server.properties
-```
 
-### 2. Start the Backend
-
-```bash
-cd kafka-demo
+---
+Start the backend:  
+```cd kafka-backend
 ./mvnw spring-boot:run
 ```
+Backend runs at:  
+`http://localhost:8080`
 
-The backend will start on `http://localhost:8080`
-
-## API Endpoints
-
-### REST API
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/sensors/latest` | Get latest readings for all sensors (up to 50 per sensor) |
-
-### WebSocket
-
-| Endpoint | Description |
-|----------|-------------|
-| `/ws` | WebSocket connection endpoint (SockJS) |
-| `/topic/sensors/latest` | Subscribe for real-time updates from all sensors |
-| `/topic/sensor/{sensorId}` | Subscribe for updates from a specific sensor |
-
-## Configuration
-
-### application.properties
-
-| Property | Default | Description |
-|----------|---------|-------------|
-| `spring.kafka.bootstrap-servers` | `localhost:9092` | Kafka broker address |
-| `generator.topic` | `sensor-data` | Kafka topic for producing sensor data |
-| `generator.interval-ms` | `1000` | Data generation interval in milliseconds |
-| `generator.enable` | `true` | Enable/disable data generator |
-| `consumer.topic` | `sensor-data` | Kafka topic to consume from |
-| `spring.kafka.consumer.group-id` | `sensor-group` | Consumer group ID |
-| `spring.kafka.consumer.auto-offset-reset` | `earliest` | Where to start reading if no offset exists |
-
-### Kafka Topic Settings
-
-The topic is automatically created on startup with:
-- **Partitions:** 1 (increase for parallel processing across multiple consumers)
-- **Replicas:** 1 (increase for fault tolerance; requires multiple Kafka brokers)
-
-## Data Model
-
-### SensorReading
-
-```json
-{
-    "sensorId": "sensor-001",
-    "temperature": 23.5,
-    "humidity": 65.2,
-    "pressure": 1013.25,
-    "location": "Building A",
-    "timestamp": "2024-01-15T10:30:00Z"
-}
+ ---
+ Start the Frontend:  
+ ```
+cd kafka-frontend
+npm install
+npm start
 ```
 
-## Key Components
+📌 Why This Project Matters
 
-### SensorReading (Model)
-Data class representing a single sensor measurement with fields for sensor ID, temperature, humidity, pressure, location, and timestamp.
+This project demonstrates:
 
-### SensorDataConsumer (Service)
-Listens to the Kafka `sensor-data` topic and:
-- Deserializes JSON messages into `SensorReading` objects
-- Stores the last 50 readings per sensor in memory (configurable)
-- Broadcasts updates via WebSocket to connected clients
-
-### SensorDataController (REST API)
-Exposes the `/api/sensors/latest` endpoint for fetching sensor data on-demand.
-
-### Config Classes
-- **KafkaConfig:** Creates the Kafka topic with specified partitions and replicas
-- **WebSocketConfig:** Configures STOMP over WebSocket for real-time push updates
-- **CorsGlobalConfig:** Allows cross-origin requests from the frontend
+- Event-driven backend architecture using Apache Kafka
+- Real-world stream processing patterns
+- Practical REST-based data delivery for monitoring use cases
+- Intentional comparison of polling vs push-based systems
+- Backend system design beyond simple CRUD applications
 
 ---
-
-## Dependencies
-
-### Lombok
-
-#### `@Data`
-- Automatically generates getters, setters, toString(), equals(), and hashCode() methods for a class
-- Saves you from writing repetitive code for data classes
-
-#### `@RequiredArgsConstructor`
-- Generates a constructor with required arguments for all final fields
-- Useful for constructor dependency injection in Spring
-
-#### `@Slf4j`
-- Creates a logger instance in your class
-- Adds a `log` field you can use for logging without manual setup
-
-### Jackson
-
-#### `ObjectMapper`
-- The main Jackson class for converting Java objects to JSON and vice versa
-- Used to serialize your Java objects to JSON strings before sending to Kafka
-
-#### `JsonProcessingException`
-- Exception thrown when processing JSON content fails
-- Used for error handling during JSON serialization/deserialization
-
-### Spring
-
-#### `@EnableScheduling`
-- Enables the scheduling capabilities
-- Allows you to use @Scheduled annotations for running methods at fixed intervals
-
-#### `@Component`
-- Marks a class as a component
-- Tells Spring to detect this class during component scanning and add it to the application context
-
-#### `@PostConstruct`
-- Specifies a method to run after dependency injection is complete
-- Used to perform initialization logic after a bean's construction
-
-### Summary
-
-These imports provide functionality for:
-- Object-to-JSON conversion (Jackson)
-- Reducing boilerplate code (Lombok)
-- Scheduling recurring tasks (Spring)
-- Bean lifecycle management (Spring/JavaEE)
-
----
-
-## Customization
-
-### Changing the Reading History Limit
-
-By default, the consumer stores the last 50 readings per sensor. To change this, modify `SensorDataConsumer.java`:
-
-```java
-// In the consume() method, change 50 to your desired limit
-if (readings.size() > 50) {
-    readings.removeLast();
-}
-```
-
-Note: Data is stored in memory, so higher limits will increase RAM usage.
-
-[//]: # (### Scaling for Production)
-
-[//]: # ()
-[//]: # (For production deployments, consider:)
-
-[//]: # ()
-[//]: # (1. **Increase Partitions** - Allows parallel consumption for higher throughput)
-
-[//]: # (2. **Increase Replicas** - Provides fault tolerance &#40;requires multiple Kafka brokers&#41;)
-
-[//]: # (3. **External Database** - Replace in-memory storage with a persistent database)
-
-[//]: # (4. **Environment Variables** - Externalize configuration for different environments)
+🧠 Notes  
+This project prioritizes **architecture, data flow, and delivery tradeoffs** over domain-specific realism.  
+The event data can represent telemetry from a wide range of systems.
 
 
