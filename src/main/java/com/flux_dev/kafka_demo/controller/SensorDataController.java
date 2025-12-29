@@ -8,9 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 @RestController //expose data via REST endpoints
 @RequestMapping("/api/sensors")
@@ -19,9 +17,12 @@ public class SensorDataController {
 
     public SensorDataController(SensorDataConsumer consumer) {
         this.consumer = consumer;
+
     }
-        @GetMapping("/latest")
-        public ResponseEntity<Map<String, LinkedList<SensorReading>>> getLatestReadings() {
-            return ResponseEntity.ok(new TreeMap<>(consumer.getLatestReadings()));
-        }
+    @GetMapping("/latest")
+    public ResponseEntity<Map<String, List<SensorReading>>> getLatestReadings() {
+        Map<String, List<SensorReading>> out = new TreeMap<>();
+        consumer.getLatestReadings().forEach((loc, deque) -> out.put(loc, new ArrayList<>(deque)));
+        return ResponseEntity.ok(out);
+    }
 }

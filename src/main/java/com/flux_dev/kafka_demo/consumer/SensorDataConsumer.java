@@ -11,16 +11,20 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Function;
 
 @Service //consumes data from Kafka
 @Slf4j
 @Getter
 public class SensorDataConsumer {
+    private static final int MAX_READINGS_PER_LOCATION = 50;
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper;
 
     //Store last 50 readings for each sensor
-    private final Map<String, LinkedList<SensorReading>> latestReadings = new ConcurrentHashMap<>();
+    //deque thread-safe per locaiton
+    private final Map<String, Deque<SensorReading>> latestReadings = new ConcurrentHashMap<>();
 
     //DoubleSummaryStatistics calculates temperature's count, sum, min, max, average
     //ConcurrentHashMap is a thread-safe implementation of HashMap
@@ -35,30 +39,68 @@ public class SensorDataConsumer {
     public void consume(String message) {
         try {
             SensorReading reading = objectMapper.readValue(message, SensorReading.class);
-            //store to memory
-            latestReadings.computeIfAbsent(reading.getSensorId(), k -> new LinkedList<>())
-            .addFirst(reading);
 
-            //trim to keep only latest 50 readings
-            LinkedList<SensorReading> readings = latestReadings.get(reading.getSensorId());
-            if (readings.size() > 50) {
-                readings.removeLast();
+            String locationKey = resolveLocationKey(reading);
+            if (locationKey == null || locationKey.isBlank()) {
+                log.warn("Dropping reading because location is missing. sensorId={}", reading.getSensorId());
+                return;
             }
-            //send reading to sensor-specific topic
-            messagingTemplate.convertAndSend("/topic/sensor/" + reading.getSensorId(), reading);
+            //store to memory latest 50 per location
+            Deque<SensorReading> deque =
+                    latestReadings.computeIfAbsent(locationKey, k -> new ConcurrentLinkedDeque<>());deque.addFirst(reading);
 
-            //send latest reading of each sensor to combined topic
+            //trim keep only 50 latest readings
+            while (deque.size() > MAX_READINGS_PER_LOCATION) {
+                deque.pollLast();
+            }
+
+            //send reading to location specific topic
+            messagingTemplate.convertAndSend("/topic/location/" + locationKey, reading);
+
+            //send latest reading of each location to combined topic
             Map<String, SensorReading> latestData = new HashMap<>();
-            latestReadings.forEach((sensorId, readingList) -> {
-                if (!readingList.isEmpty()) {
-                    latestData.put(sensorId, readingList.getFirst());
+            latestReadings.forEach((loc, readingDeque) -> {
+                SensorReading first = readingDeque.peekFirst();
+                if (first != null) {
+                    latestData.put(loc, first);
                 }
             });
-            messagingTemplate.convertAndSend("/topic/sensors/latest", latestData);
-            log.info("Sent to WebSocket: {}", reading.getSensorId());
+            messagingTemplate.convertAndSend("/topic/locations/latest", latestData);
+            log.debug("Sent to WebSocket: {}", locationKey);
         } catch (IOException e) {
             log.error("Error deserializing message", e);
         }
     }
+    public DoubleSummaryStatistics getTemperatureStats(String location) {
+        return computeStats(location, SensorReading::getTemperature);
+    }
+    public DoubleSummaryStatistics getHumidityStats(String location) {
+        return computeStats(location, SensorReading::getHumidity);
+    }
+    public DoubleSummaryStatistics getPressureStats(String location) {
+        return computeStats(location, SensorReading::getPressure);
+    }
+    private String resolveLocationKey(SensorReading reading) {
+        if (reading.getLocationId() != null && !reading.getLocationId().isBlank()) {
+            return reading.getLocationId();
+        }
+        return reading.getLocation();
+    }
+
+    private DoubleSummaryStatistics computeStats(String location, Function<SensorReading, Double> extractor){
+        DoubleSummaryStatistics stats = new DoubleSummaryStatistics();
+        Deque<SensorReading> readings = latestReadings.get(location);
+        if (readings == null) {
+            return stats;
+        }
+        for (SensorReading r : readings) {
+            Double value = extractor.apply(r);
+            if (value != null) {
+                stats.accept(value);
+            }
+        }
+        return stats;
+    }
+
 
 }

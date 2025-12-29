@@ -11,6 +11,9 @@ public class SensorReading {
     private Double temperature;
     private Double humidity;
     private Double pressure;
-    private String location;
+    private String locationId;
     private Instant timestamp;
+    private LocationType locationType;
+    private String location;
+
 }

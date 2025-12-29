@@ -1,5 +1,7 @@
 package com.flux_dev.kafka_demo.service;
 
+import com.flux_dev.kafka_demo.model.Location;
+import com.flux_dev.kafka_demo.model.LocationType;
 import com.flux_dev.kafka_demo.model.SensorReading;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +14,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
@@ -29,20 +32,27 @@ public class SensorDataGenerator {
     @Value("${generator.enabled}")
     private boolean enabled;
 
-    private static final String [] LOCATIONS = {
-            "warehouse", "factory-floor", "office", "loading-dock", "outdoor"
-    };
+    private final List<Location> locations = List.of(
+            new Location("warehouse-1", LocationType.WAREHOUSE),
+            new Location("factory-floor-1", LocationType.FACTORY_FLOOR),
+            new Location("office-1", LocationType.OFFICE),
+            new Location("loading-dock-1", LocationType.LOADING_DOCK),
+            new Location("outdoor-1", LocationType.OUTDOOR)
+    );
 
     @Scheduled(fixedRateString = "${generator.interval-ms}")
+
+    //one reading per location on each tick
     public void generateData() {
         if(!enabled) return;
+        for (Location location : locations) {
+            try {
+                SensorReading reading = createReadingForLocation(location);
+                String json = objectMapper.writeValueAsString(reading);
 
-        try {
-            SensorReading reading = createRandomReading();
-            String json = objectMapper.writeValueAsString(reading);
-
-            CompletableFuture<SendResult<String, String>> future =
-                kafkaTemplate.send(topic, reading.getSensorId(), json);
+                //using sensorId as kafka key
+                CompletableFuture<SendResult<String, String>> future =
+                        kafkaTemplate.send(topic, reading.getSensorId(), json);
 
                 future.whenComplete((result, ex) ->{
                     if (ex == null) {
@@ -55,19 +65,51 @@ public class SensorDataGenerator {
             } catch(JsonProcessingException e) {
                 log.error("Error serializing sensor data", e);
             }
+        }
+
     }
 
-
-
-    private SensorReading createRandomReading() {
+    private SensorReading createReadingForLocation(Location location) {
         SensorReading reading = new SensorReading();
-        reading.setSensorId("sensor-" + (random.nextInt(5) + 1));
-        reading.setTemperature(20 + random.nextDouble() *10);
-        reading.setHumidity(30 + random.nextDouble() * 50);
-        reading.setPressure(1000 + random.nextDouble() * 25);
-        reading.setLocation(LOCATIONS[random.nextInt(LOCATIONS.length)]);
+        // 1 sensor per location
+        reading.setSensorId("sensor-" + location.getId());
+        reading.setTemperature(generateTemperature(location.getType()));
+        reading.setHumidity(generateHumidity(location.getType()));
+        reading.setPressure(generatePressure(location.getType()));
+
+        reading.setLocationId(location.getId());
+        reading.setLocationType(location.getType());
+        reading.setLocation(location.getId());
         reading.setTimestamp(Instant.now());
         return reading;
+    }
+
+    private double generateTemperature(LocationType type) {
+        return switch (type) {
+            case WAREHOUSE -> 5+random.nextDouble()*10;
+            case FACTORY_FLOOR -> 18+random.nextDouble()*12;
+            case OFFICE -> 20+random.nextDouble()*4;
+            case LOADING_DOCK-> 10+random.nextDouble()*12;
+            case OUTDOOR -> 5+random.nextDouble()*40;
+        };
+    }
+
+    private double generateHumidity(LocationType type) {
+        return switch (type) {
+            case WAREHOUSE-> 55+random.nextDouble()*25;
+            case FACTORY_FLOOR -> 35+random.nextDouble()*35;
+            case OFFICE-> 30+random.nextDouble()*20;
+            case LOADING_DOCK-> 40+random.nextDouble()*40;
+            case OUTDOOR -> 20+random.nextDouble()*75;
+        };
+    }
+
+    private double generatePressure(LocationType type) {
+        double base = switch (type) {
+            case OUTDOOR -> 995;
+            default -> 1005;
+        };
+        return base + random.nextDouble()*15;
     }
 
 }
