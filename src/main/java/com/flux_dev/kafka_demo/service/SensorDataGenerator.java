@@ -52,7 +52,7 @@ public class SensorDataGenerator {
 
                 //using sensorId as kafka key
                 CompletableFuture<SendResult<String, String>> future =
-                        kafkaTemplate.send(topic, reading.getSensorId(), json);
+                        kafkaTemplate.send(topic, reading.getLocationId(), json);
 
                 future.whenComplete((result, ex) ->{
                     if (ex == null) {
@@ -72,7 +72,6 @@ public class SensorDataGenerator {
     private SensorReading createReadingForLocation(Location location) {
         SensorReading reading = new SensorReading();
         // 1 sensor per location
-        reading.setSensorId("sensor-" + location.getId());
         reading.setTemperature(generateTemperature(location.getType()));
         reading.setHumidity(generateHumidity(location.getType()));
         reading.setPressure(generatePressure(location.getType()));

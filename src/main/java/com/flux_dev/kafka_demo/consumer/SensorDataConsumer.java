@@ -42,7 +42,8 @@ public class SensorDataConsumer {
 
             String locationKey = resolveLocationKey(reading);
             if (locationKey == null || locationKey.isBlank()) {
-                log.warn("Dropping reading because location is missing. sensorId={}", reading.getSensorId());
+                log.warn("Dropping reading because location is missing. locationId={}, location={}",
+                        reading.getLocationId(), reading.getLocation());
                 return;
             }
             //store to memory latest 50 per location
