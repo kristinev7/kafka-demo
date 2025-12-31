@@ -2,7 +2,7 @@
 
 A **real-time, event-driven data streaming platform** built with **Apache Kafka** and **Spring Boot** to ingest, process, and expose continuous event data.
 This project focuses on **distributed backend architecture**, **stream processing**, and a deliberate comparison between **polling-based** and **push-based** data delivery models. 
-The system currently uses REST polling, with WebSocket-based push delivery **in progress**.
+The system currently uses REST polling and WebSocket-based push delivery. 
 
 ---
 
@@ -11,7 +11,7 @@ The system currently uses REST polling, with WebSocket-based push delivery **in 
 - Build an **event-driven backend system** using Apache Kafka
 - Process continuous event data with a scalable consumer architecture
 - Expose streamed data via **REST APIs (polling)**
-- Explore **push-based delivery using WebSockets** *(in progress)*
+- Explore **push-based delivery using WebSockets** 
 - Compare tradeoffs between polling and push delivery models
 - Practice backend system design and data flow management
 
@@ -36,8 +36,8 @@ The system currently uses REST polling, with WebSocket-based push delivery **in 
 - Clear separation of consumer, service, and API layers
 
 ### Data Access & Delivery
-- **REST APIs** for pull-based access to recent event data *(implemented)*
-- **WebSocket (STOMP)** push delivery for real-time updates *(in progress)*
+- **REST APIs** for pull-based access to recent event data 
+- **WebSocket (STOMP)** push delivery for real-time updates 
 
 ### Client Dashboard
 - React-based frontend
@@ -55,12 +55,12 @@ The system currently uses REST polling, with WebSocket-based push delivery **in 
 - Apache Kafka
 - Spring Kafka
 - REST APIs
-- WebSocket (STOMP) *(in progress)*
+- WebSocket (STOMP) 
 
 ### Frontend
 - React
 - REST client
-- WebSocket client *(planned)*
+- WebSocket client 
 
 ---
 
@@ -71,7 +71,7 @@ The system currently uses REST polling, with WebSocket-based push delivery **in 
 - REST-based polling APIs for accessing recent events
 - Bounded in-memory storage to limit resource usage
 - Clear layering between ingestion, processing, and delivery
-- WebSocket-based real-time delivery *(in progress)*
+- WebSocket-based real-time delivery
 
 ---
 
@@ -89,7 +89,6 @@ This project intentionally explores two common approaches to delivering streamin
 - Lower latency and more efficient for live dashboards
 - Requires persistent connections and connection management
 
-**Status:** REST polling is fully implemented. WebSocket-based push delivery is currently being added to enable direct comparison.
 
 ---
 
@@ -100,9 +99,9 @@ This project intentionally explores two common approaches to delivering streamin
 3. Spring Boot consumer ingests and processes events
 4. Recent events are stored in memory with a fixed retention limit
 5. Clients access data via:
-   - REST polling *(current)*
-   - WebSocket push delivery *(in progress)*
-
+   - REST polling 
+   - WebSocket push delivery 
+   
 ---
 
 ## 🧪 Local Setup
