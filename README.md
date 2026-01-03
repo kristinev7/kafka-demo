@@ -79,12 +79,12 @@ The system currently uses REST polling and WebSocket-based push delivery.
 
 This project intentionally explores two common approaches to delivering streaming data to clients.
 
-### REST Polling (Implemented)
+### REST Polling 
 - Clients request the latest event data at fixed intervals
 - Simple to implement and widely supported
 - Can result in higher latency and redundant requests
 
-### WebSocket Push (In Progress)
+### WebSocket Push 
 - Backend pushes updates to clients as soon as new events arrive
 - Lower latency and more efficient for live dashboards
 - Requires persistent connections and connection management
