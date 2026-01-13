@@ -57,7 +57,7 @@ The system currently uses REST polling and WebSocket-based push delivery.
 - REST APIs
 - WebSocket (STOMP) 
 
-### Frontend
+### Frontend [kafka-demo-frontend](https://github.com/kristinev7/kafka-demo-frontend)
 - React
 - REST client
 - WebSocket client 

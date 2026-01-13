@@ -50,7 +50,7 @@ public class SensorDataGenerator {
                 SensorReading reading = createReadingForLocation(location);
                 String json = objectMapper.writeValueAsString(reading);
 
-                //using sensorId as kafka key
+                //use location as kafka key
                 CompletableFuture<SendResult<String, String>> future =
                         kafkaTemplate.send(topic, reading.getLocationId(), json);
 
