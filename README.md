@@ -130,9 +130,9 @@ Backend runs at:
  ---
  Start the Frontend:  
  ```
-cd kafka-frontend
+cd kafka-demo-frontend
 npm install
-npm start
+npm run dev
 ```
 
 📌 Why This Project Matters
