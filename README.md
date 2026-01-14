@@ -128,14 +128,24 @@ Backend runs at:
 `http://localhost:8080`
 
  ---
- Start the Frontend:  
+## Docker Setup 
+```
+# KRaft Mode  
+docker compose -f docker-compose.kraft.yml --profile kraft up --build
+
+# Zookeeper Mode (legacy)
+docker compose -f docker-compose.zookeeper.yml --profile zookeeper up --build
+```
+
+ ---
+ ## Start the Frontend:  [kafka-demo-frontend](https://github.com/kristinev7/kafka-demo-frontend)
  ```
 cd kafka-demo-frontend
 npm install
 npm run dev
 ```
 
-📌 Why This Project Matters
+### 📌 Why This Project Matters
 
 This project demonstrates:
 
