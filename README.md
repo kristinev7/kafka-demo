@@ -128,16 +128,25 @@ Backend runs at:
 `http://localhost:8080`
 
  ---
-## Docker Setup 
+## Docker Setup
+
+### Prerequisites for Docker
+- Must have Docker installed and running
+- Don't run Zookeeper mode and KRaft mode at the same time
+
+### Files
+- docker-compose.zookeeper.yml → Zookeeper-based Kafka Stack
+- docker-compose.kraft.yml → KRaft-based Kafka Stack
+
 ```
-# KRaft Mode  
+# Start KRaft Mode  
 docker compose -f docker-compose.kraft.yml --profile kraft up --build
 
-# Zookeeper Mode (legacy)
+# Start Zookeeper Mode (legacy)
 docker compose -f docker-compose.zookeeper.yml --profile zookeeper up --build
 ```
 
- ---
+---
  ## Start the Frontend:  [kafka-demo-frontend](https://github.com/kristinev7/kafka-demo-frontend)
  ```
 cd kafka-demo-frontend
